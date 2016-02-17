@@ -27,6 +27,8 @@ import com.malmstein.fenster.R;
 import com.malmstein.fenster.controller.FensterPlayerController;
 import com.malmstein.fenster.play.FensterPlayer;
 import com.malmstein.fenster.play.FensterVideoStateListener;
+import com.malmstein.fenster.renderer.MoviePlayerTextureRenderer;
+import com.malmstein.fenster.renderer.VideoTextureRenderer;
 
 import java.io.IOException;
 import java.util.Map;
@@ -98,6 +100,10 @@ public class FensterVideoView extends TextureView implements MediaController.Med
     private FensterVideoStateListener onPlayStateListener;
 
     private AlertDialog errorDialog;
+
+    private VideoTextureRenderer mRenderer;
+    private int mVideoWidth;
+    private int mVideoHeight;
 
     public FensterVideoView(final Context context, final AttributeSet attrs) {
         this(context, attrs, 0);
@@ -238,36 +244,48 @@ public class FensterVideoView extends TextureView implements MediaController.Med
 
         // we shouldn't clear the target state, because somebody might have called start() previously
         release(false);
-        try {
-            mMediaPlayer = new MediaPlayer();
+        mRenderer = new VideoTextureRenderer(getContext(), mSurfaceTexture, mVideoWidth, mVideoHeight, new VideoTextureRenderer.OnVideoTextureAvailableListener() {
+            @Override
+            public void onVideoTextureAvailable(VideoTextureRenderer videoTextureRenderer, final SurfaceTexture surfaceTexture) {
+                post(new Runnable() {
+                    @Override
+                    public void run() {
+                        try {
+                            mMediaPlayer = new MediaPlayer();
 
-            if (mAudioSession != 0) {
-                mMediaPlayer.setAudioSessionId(mAudioSession);
-            } else {
-                mAudioSession = mMediaPlayer.getAudioSessionId();
+                            if (mAudioSession != 0) {
+                                mMediaPlayer.setAudioSessionId(mAudioSession);
+                            } else {
+                                mAudioSession = mMediaPlayer.getAudioSessionId();
+                            }
+                            mMediaPlayer.setOnPreparedListener(mPreparedListener);
+                            mMediaPlayer.setOnVideoSizeChangedListener(mSizeChangedListener);
+                            mMediaPlayer.setOnCompletionListener(mCompletionListener);
+                            mMediaPlayer.setOnErrorListener(mErrorListener);
+                            mMediaPlayer.setOnInfoListener(mInfoListener);
+                            mMediaPlayer.setOnBufferingUpdateListener(mBufferingUpdateListener);
+                            mCurrentBufferPercentage = 0;
+
+                            setDataSource();
+                            setScaleType(mScaleType);
+
+                            mMediaPlayer.setSurface(new Surface(surfaceTexture));
+                            mMediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
+                            mMediaPlayer.setScreenOnWhilePlaying(true);
+                            mMediaPlayer.prepareAsync();
+
+                            // we don't set the target state here either, but preserve the target state that was there before.
+                            mCurrentState = STATE_PREPARING;
+                            attachMediaController();
+                        } catch (final IOException | IllegalArgumentException ex) {
+                            notifyUnableToOpenContent(ex);
+                        }
+                    }
+                });
+
             }
-            mMediaPlayer.setOnPreparedListener(mPreparedListener);
-            mMediaPlayer.setOnVideoSizeChangedListener(mSizeChangedListener);
-            mMediaPlayer.setOnCompletionListener(mCompletionListener);
-            mMediaPlayer.setOnErrorListener(mErrorListener);
-            mMediaPlayer.setOnInfoListener(mInfoListener);
-            mMediaPlayer.setOnBufferingUpdateListener(mBufferingUpdateListener);
-            mCurrentBufferPercentage = 0;
+        });
 
-            setDataSource();
-            setScaleType(mScaleType);
-
-            mMediaPlayer.setSurface(new Surface(mSurfaceTexture));
-            mMediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
-            mMediaPlayer.setScreenOnWhilePlaying(true);
-            mMediaPlayer.prepareAsync();
-
-            // we don't set the target state here either, but preserve the target state that was there before.
-            mCurrentState = STATE_PREPARING;
-            attachMediaController();
-        } catch (final IOException | IllegalArgumentException ex) {
-            notifyUnableToOpenContent(ex);
-        }
     }
 
     private void setDataSource() throws IOException {
@@ -550,6 +568,8 @@ public class FensterVideoView extends TextureView implements MediaController.Med
         @Override
         public void onSurfaceTextureAvailable(final SurfaceTexture surface, final int width, final int height) {
             mSurfaceTexture = surface;
+            mVideoWidth = width;
+            mVideoHeight = height;
             openVideo();
         }
 
@@ -557,7 +577,12 @@ public class FensterVideoView extends TextureView implements MediaController.Med
         public void onSurfaceTextureSizeChanged(final SurfaceTexture surface, final int width, final int height) {
             boolean isValidState = (mTargetState == STATE_PLAYING);
             boolean hasValidSize = videoSizeCalculator.currentSizeIs(width, height);
+            if (mRenderer != null) {
+                mRenderer.setVideoSize(width, height);
+            }
             if (mMediaPlayer != null && isValidState && hasValidSize) {
+                mVideoWidth = width;
+                mVideoHeight = height;
                 if (mSeekWhenPrepared != 0) {
                     seekTo(mSeekWhenPrepared);
                 }
@@ -568,6 +593,7 @@ public class FensterVideoView extends TextureView implements MediaController.Med
         @Override
         public boolean onSurfaceTextureDestroyed(final SurfaceTexture surface) {
             mSurfaceTexture = null;
+
             hideMediaController();
             release(true);
             return false;
@@ -575,7 +601,12 @@ public class FensterVideoView extends TextureView implements MediaController.Med
 
         @Override
         public void onSurfaceTextureUpdated(final SurfaceTexture surface) {
-            mSurfaceTexture = surface;
+            if (mSurfaceTexture != surface) {
+                mSurfaceTexture = surface;
+                if (mRenderer != null) {
+                    mRenderer.reinitGL(surface);
+                }
+            }
         }
     };
 
@@ -592,6 +623,10 @@ public class FensterVideoView extends TextureView implements MediaController.Med
                 mTargetState = STATE_IDLE;
             }
         }
+        if (mRenderer != null) {
+            mRenderer.onPause();
+        }
+        mRenderer = null;
     }
 
     @Override
