@@ -56,6 +56,8 @@ public class FensterVideoView extends TextureView implements MediaController.Med
 
         void setVideoSize(int width, int height);
 
+        void setOutputSize(int width, int height);
+
         void startRenderingToOutput(SurfaceTexture outputSurfaceTexture, Runnable callback);
 
         SurfaceTexture getInputTexture();
@@ -112,8 +114,8 @@ public class FensterVideoView extends TextureView implements MediaController.Med
     private AlertDialog errorDialog;
 
     private Renderer mRenderer;
-    private int mVideoWidth;
-    private int mVideoHeight;
+    private int mSurfaceWidth;
+    private int mSurfaceHeight;
 
     public FensterVideoView(final Context context, final AttributeSet attrs) {
         this(context, attrs, 0);
@@ -288,6 +290,7 @@ public class FensterVideoView extends TextureView implements MediaController.Med
         // we shouldn't clear the target state, because somebody might have called start() previously
         release(false);
         if (mRenderer != null) {
+            mRenderer.setOutputSize(mSurfaceWidth, mSurfaceHeight);
             mRenderer.startRenderingToOutput(mSurfaceTexture, new Runnable() {
                 @Override
                 public void run() {
@@ -589,8 +592,8 @@ public class FensterVideoView extends TextureView implements MediaController.Med
         @Override
         public void onSurfaceTextureAvailable(final SurfaceTexture surface, final int width, final int height) {
             mSurfaceTexture = surface;
-            mVideoWidth = width;
-            mVideoHeight = height;
+            mSurfaceWidth = width;
+            mSurfaceHeight = height;
             openVideo();
         }
 
@@ -602,8 +605,11 @@ public class FensterVideoView extends TextureView implements MediaController.Med
                 mRenderer.setVideoSize(width, height);
             }
             if (mMediaPlayer != null && isValidState && hasValidSize) {
-                mVideoWidth = width;
-                mVideoHeight = height;
+                mSurfaceWidth = width;
+                mSurfaceHeight = height;
+                if (mRenderer != null){
+                    mRenderer.setOutputSize(mSurfaceWidth, mSurfaceHeight);
+                }
                 if (mSeekWhenPrepared != 0) {
                     seekTo(mSeekWhenPrepared);
                 }
