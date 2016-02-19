@@ -27,8 +27,6 @@ import com.malmstein.fenster.R;
 import com.malmstein.fenster.controller.FensterPlayerController;
 import com.malmstein.fenster.play.FensterPlayer;
 import com.malmstein.fenster.play.FensterVideoStateListener;
-import com.malmstein.fenster.renderer.MoviePlayerTextureRenderer;
-import com.malmstein.fenster.renderer.VideoTextureRenderer;
 
 import java.io.IOException;
 import java.util.Map;
@@ -50,6 +48,16 @@ import java.util.Map;
  */
 
 public class FensterVideoView extends TextureView implements MediaController.MediaPlayerControl, FensterPlayer {
+
+    public interface Renderer {
+        void onPause();
+
+        void setVideoSize(int width, int height);
+
+        void startRenderingToOutput(SurfaceTexture outputSurfaceTexture, Runnable callback);
+
+        SurfaceTexture getInputTexture();
+    }
 
     public static final String TAG = "TextureVideoView";
     public static final int VIDEO_BEGINNING = 0;
@@ -101,7 +109,7 @@ public class FensterVideoView extends TextureView implements MediaController.Med
 
     private AlertDialog errorDialog;
 
-    private VideoTextureRenderer mRenderer;
+    private Renderer mRenderer;
     private int mVideoWidth;
     private int mVideoHeight;
 
@@ -236,6 +244,39 @@ public class FensterVideoView extends TextureView implements MediaController.Med
         }
     }
 
+    private void openVideoImpl() {
+        try {
+            mMediaPlayer = new MediaPlayer();
+
+            if (mAudioSession != 0) {
+                mMediaPlayer.setAudioSessionId(mAudioSession);
+            } else {
+                mAudioSession = mMediaPlayer.getAudioSessionId();
+            }
+            mMediaPlayer.setOnPreparedListener(mPreparedListener);
+            mMediaPlayer.setOnVideoSizeChangedListener(mSizeChangedListener);
+            mMediaPlayer.setOnCompletionListener(mCompletionListener);
+            mMediaPlayer.setOnErrorListener(mErrorListener);
+            mMediaPlayer.setOnInfoListener(mInfoListener);
+            mMediaPlayer.setOnBufferingUpdateListener(mBufferingUpdateListener);
+            mCurrentBufferPercentage = 0;
+
+            setDataSource();
+            setScaleType(mScaleType);
+
+            mMediaPlayer.setSurface(new Surface(mRenderer == null ? mSurfaceTexture : mRenderer.getInputTexture()));
+            mMediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
+            mMediaPlayer.setScreenOnWhilePlaying(true);
+            mMediaPlayer.prepareAsync();
+
+            // we don't set the target state here either, but preserve the target state that was there before.
+            mCurrentState = STATE_PREPARING;
+            attachMediaController();
+        } catch (final IOException | IllegalArgumentException ex) {
+            notifyUnableToOpenContent(ex);
+        }
+    }
+
     private void openVideo() {
         if (notReadyForPlaybackJustYetWillTryAgainLater()) {
             return;
@@ -244,48 +285,21 @@ public class FensterVideoView extends TextureView implements MediaController.Med
 
         // we shouldn't clear the target state, because somebody might have called start() previously
         release(false);
-        mRenderer = new VideoTextureRenderer(getContext(), mSurfaceTexture, mVideoWidth, mVideoHeight, new VideoTextureRenderer.OnVideoTextureAvailableListener() {
-            @Override
-            public void onVideoTextureAvailable(VideoTextureRenderer videoTextureRenderer, final SurfaceTexture surfaceTexture) {
-                post(new Runnable() {
-                    @Override
-                    public void run() {
-                        try {
-                            mMediaPlayer = new MediaPlayer();
-
-                            if (mAudioSession != 0) {
-                                mMediaPlayer.setAudioSessionId(mAudioSession);
-                            } else {
-                                mAudioSession = mMediaPlayer.getAudioSessionId();
-                            }
-                            mMediaPlayer.setOnPreparedListener(mPreparedListener);
-                            mMediaPlayer.setOnVideoSizeChangedListener(mSizeChangedListener);
-                            mMediaPlayer.setOnCompletionListener(mCompletionListener);
-                            mMediaPlayer.setOnErrorListener(mErrorListener);
-                            mMediaPlayer.setOnInfoListener(mInfoListener);
-                            mMediaPlayer.setOnBufferingUpdateListener(mBufferingUpdateListener);
-                            mCurrentBufferPercentage = 0;
-
-                            setDataSource();
-                            setScaleType(mScaleType);
-
-                            mMediaPlayer.setSurface(new Surface(surfaceTexture));
-                            mMediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
-                            mMediaPlayer.setScreenOnWhilePlaying(true);
-                            mMediaPlayer.prepareAsync();
-
-                            // we don't set the target state here either, but preserve the target state that was there before.
-                            mCurrentState = STATE_PREPARING;
-                            attachMediaController();
-                        } catch (final IOException | IllegalArgumentException ex) {
-                            notifyUnableToOpenContent(ex);
+        if (mRenderer != null) {
+            mRenderer.startRenderingToOutput(mSurfaceTexture, new Runnable() {
+                @Override
+                public void run() {
+                    post(new Runnable() {
+                        @Override
+                        public void run() {
+                            openVideoImpl();
                         }
-                    }
-                });
-
-            }
-        });
-
+                    });
+                }
+            });
+        } else {
+            openVideoImpl();
+        }
     }
 
     private void setDataSource() throws IOException {
@@ -603,9 +617,6 @@ public class FensterVideoView extends TextureView implements MediaController.Med
         public void onSurfaceTextureUpdated(final SurfaceTexture surface) {
             if (mSurfaceTexture != surface) {
                 mSurfaceTexture = surface;
-                if (mRenderer != null) {
-                    mRenderer.reinitGL(surface);
-                }
             }
         }
     };
@@ -830,4 +841,11 @@ public class FensterVideoView extends TextureView implements MediaController.Med
         this.onPlayStateListener = onPlayStateListener;
     }
 
+    public Renderer getRenderer() {
+        return mRenderer;
+    }
+
+    public void setRenderer(Renderer renderer) {
+        this.mRenderer = renderer;
+    }
 }

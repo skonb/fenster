@@ -21,6 +21,7 @@ import com.malmstein.fenster.R;
 import com.malmstein.fenster.play.FensterPlayer;
 import com.malmstein.fenster.play.FensterVideoStateListener;
 import com.malmstein.fenster.view.FensterTouchRoot;
+import com.malmstein.fenster.view.FensterVideoView;
 
 import java.util.Formatter;
 import java.util.Locale;
@@ -64,6 +65,8 @@ public final class SimpleMediaFensterPlayerController extends FrameLayout implem
     private ImageButton mPrevButton;
     private ProgressBar loadingView;
     private int lastPlayedSeconds = -1;
+
+    FensterVideoView.OnPreRenderFrameListener onPreRenderFrameListener;
 
     public SimpleMediaFensterPlayerController(final Context context) {
         this(context, null);
@@ -485,4 +488,15 @@ public final class SimpleMediaFensterPlayerController extends FrameLayout implem
         }
     }
 
+    public FensterVideoView.OnPreRenderFrameListener getOnPreRenderFrameListener() {
+        return onPreRenderFrameListener;
+    }
+
+    public void setOnPreRenderFrameListener(FensterVideoView.OnPreRenderFrameListener onPreRenderFrameListener) {
+        this.onPreRenderFrameListener = onPreRenderFrameListener;
+        FensterVideoView fensterVideoView = (FensterVideoView) findViewById(R.id.fen__play_video_texture);
+        if (fensterVideoView != null) {
+            fensterVideoView.setOnPreRenderFrameListener(onPreRenderFrameListener);
+        }
+    }
 }

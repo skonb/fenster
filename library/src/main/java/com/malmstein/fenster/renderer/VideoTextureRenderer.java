@@ -8,7 +8,6 @@ import android.opengl.GLES20;
 import android.opengl.GLUtils;
 import android.opengl.Matrix;
 import android.util.Log;
-import android.view.SurfaceHolder;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -49,6 +48,14 @@ public class VideoTextureRenderer extends TextureSurfaceRenderer implements Surf
                     "    gl_FragColor = texture2D(s_Texture, v_TexCoordinate);\n" +
                     "}\n";
 
+    public interface OnRenderFrameListener {
+        void onPrepareDraw();
+
+        void onPreRender();
+    }
+
+    private OnRenderFrameListener onRenderFrameListener;
+
     public interface OnVideoTextureAvailableListener {
         void onVideoTextureAvailable(VideoTextureRenderer videoTextureRenderer, SurfaceTexture surfaceTexture);
     }
@@ -57,9 +64,9 @@ public class VideoTextureRenderer extends TextureSurfaceRenderer implements Surf
 
     private static float squareSize = 1.0f;
     private static float squareCoords[] = {
-            -squareSize, squareSize, 0f,   // top left
-            -squareSize, -squareSize, 0f,   // bottom left
-            squareSize, -squareSize, 0f,   // bottom right
+            -squareSize, -squareSize, 0f,   // top left
+            squareSize, -squareSize, 0f,   // bottom left
+            -squareSize, squareSize, 0f,   // bottom right
             squareSize, squareSize, 0f}; // top right
 
     private static short drawOrder[] = {0, 1, 2, 0, 2, 3};
@@ -69,9 +76,9 @@ public class VideoTextureRenderer extends TextureSurfaceRenderer implements Surf
     // Texture to be shown in backgrund
     private FloatBuffer textureBuffer;
     private float textureCoords[] = {0.0f, 1.0f, 0.0f, 1.0f,
+            1.0f, 1.0f, 0.0f, 1.0f,
             0.0f, 0.0f, 0.0f, 1.0f,
-            1.0f, 0.0f, 0.0f, 1.0f,
-            1.0f, 1.0f, 0.0f, 1.0f};
+            1.0f, 0.0f, 0.0f, 1.0f};
     private int[] textures = new int[1];
 
     private int vertexShaderHandle;
@@ -234,7 +241,12 @@ public class VideoTextureRenderer extends TextureSurfaceRenderer implements Surf
         Matrix.setIdentityM(identity, 0);
         GLES20.glUniformMatrix4fv(textureTranformHandle, 1, false, identity, 0);
 
-        GLES20.glDrawElements(GLES20.GL_TRIANGLES, drawOrder.length, GLES20.GL_UNSIGNED_SHORT, drawListBuffer);
+        if (onRenderFrameListener != null) {
+            onRenderFrameListener.onPreRender();
+        }
+
+        GLES20.glDrawArrays(GLES20.GL_TRIANGLE_STRIP, 0, 4);
+//        GLES20.glDrawElements(GLES20.GL_TRIANGLES, drawOrder.length, GLES20.GL_UNSIGNED_SHORT, drawListBuffer);
         GLES20.glDisableVertexAttribArray(positionHandle);
         GLES20.glDisableVertexAttribArray(textureCoordinateHandle);
         GLES20.glBindTexture(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, 0);
@@ -283,9 +295,16 @@ public class VideoTextureRenderer extends TextureSurfaceRenderer implements Surf
         Matrix.setIdentityM(identity, 0);
         GLES20.glUniformMatrix4fv(textureTranformHandle, 1, false, videoTextureTransform, 0);
 
-        GLES20.glDrawElements(GLES20.GL_TRIANGLES, drawOrder.length, GLES20.GL_UNSIGNED_SHORT, drawListBuffer);
+        GLES20.glDrawArrays(GLES20.GL_TRIANGLE_STRIP, 0, 4);
+//        GLES20.glDrawElements(GLES20.GL_TRIANGLES, drawOrder.length, GLES20.GL_UNSIGNED_SHORT, drawListBuffer);
         GLES20.glDisableVertexAttribArray(positionHandle);
         GLES20.glDisableVertexAttribArray(textureCoordinateHandle);
+    }
+
+    void prepareDraw() {
+        if (onRenderFrameListener != null) {
+            onRenderFrameListener.onPrepareDraw();
+        }
     }
 
     @Override
@@ -470,5 +489,13 @@ public class VideoTextureRenderer extends TextureSurfaceRenderer implements Surf
 
     public void setOnVideoTextureAvailableListener(OnVideoTextureAvailableListener onVideoTextureAvailableListener) {
         this.onVideoTextureAvailableListener = onVideoTextureAvailableListener;
+    }
+
+    public OnRenderFrameListener getOnRenderFrameListener() {
+        return onRenderFrameListener;
+    }
+
+    public void setOnRenderFrameListener(OnRenderFrameListener onRenderFrameListener) {
+        this.onRenderFrameListener = onRenderFrameListener;
     }
 }
