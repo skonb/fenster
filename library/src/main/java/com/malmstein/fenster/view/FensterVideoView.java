@@ -13,6 +13,8 @@ import android.media.MediaPlayer.OnCompletionListener;
 import android.media.MediaPlayer.OnErrorListener;
 import android.media.MediaPlayer.OnInfoListener;
 import android.net.Uri;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.KeyEvent;
@@ -294,7 +296,7 @@ public class FensterVideoView extends TextureView implements MediaController.Med
             mRenderer.startRenderingToOutput(mSurfaceTexture, new Runnable() {
                 @Override
                 public void run() {
-                    post(new Runnable() {
+                    new Handler(Looper.getMainLooper()).post(new Runnable() {
                         @Override
                         public void run() {
                             openVideoImpl();
@@ -607,7 +609,7 @@ public class FensterVideoView extends TextureView implements MediaController.Med
             if (mMediaPlayer != null && isValidState && hasValidSize) {
                 mSurfaceWidth = width;
                 mSurfaceHeight = height;
-                if (mRenderer != null){
+                if (mRenderer != null) {
                     mRenderer.setOutputSize(mSurfaceWidth, mSurfaceHeight);
                 }
                 if (mSeekWhenPrepared != 0) {
