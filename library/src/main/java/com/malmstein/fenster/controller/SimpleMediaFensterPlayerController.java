@@ -66,7 +66,6 @@ public final class SimpleMediaFensterPlayerController extends FrameLayout implem
     private ProgressBar loadingView;
     private int lastPlayedSeconds = -1;
 
-    FensterVideoView.OnPreRenderFrameListener onPreRenderFrameListener;
 
     public SimpleMediaFensterPlayerController(final Context context) {
         this(context, null);
@@ -488,15 +487,4 @@ public final class SimpleMediaFensterPlayerController extends FrameLayout implem
         }
     }
 
-    public FensterVideoView.OnPreRenderFrameListener getOnPreRenderFrameListener() {
-        return onPreRenderFrameListener;
-    }
-
-    public void setOnPreRenderFrameListener(FensterVideoView.OnPreRenderFrameListener onPreRenderFrameListener) {
-        this.onPreRenderFrameListener = onPreRenderFrameListener;
-        FensterVideoView fensterVideoView = (FensterVideoView) findViewById(R.id.fen__play_video_texture);
-        if (fensterVideoView != null) {
-            fensterVideoView.setOnPreRenderFrameListener(onPreRenderFrameListener);
-        }
-    }
 }
