@@ -52,6 +52,8 @@ public class FensterVideoView extends TextureView implements MediaController.Med
     public interface Renderer {
         void onPause();
 
+        boolean isStarted();
+
         void setVideoSize(int width, int height);
 
         void startRenderingToOutput(SurfaceTexture outputSurfaceTexture, Runnable callback);
@@ -635,9 +637,11 @@ public class FensterVideoView extends TextureView implements MediaController.Med
             }
         }
         if (mRenderer != null) {
-            mRenderer.onPause();
+            if (mRenderer.isStarted()) {
+                mRenderer.onPause();
+                mRenderer = null;
+            }
         }
-        mRenderer = null;
     }
 
     @Override
