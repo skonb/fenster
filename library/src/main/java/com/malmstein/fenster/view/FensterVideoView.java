@@ -353,6 +353,9 @@ public class FensterVideoView extends TextureView implements MediaController.Med
         @Override
         public void onVideoSizeChanged(final MediaPlayer mp, final int width, final int height) {
             videoSizeCalculator.setVideoSize(mp.getVideoWidth(), mp.getVideoHeight());
+            if (mRenderer != null) {
+                mRenderer.setVideoSize(width, height);
+            }
             if (videoSizeCalculator.hasASizeYet()) {
                 requestLayout();
             }
@@ -375,7 +378,9 @@ public class FensterVideoView extends TextureView implements MediaController.Med
                 fensterPlayerController.setEnabled(true);
             }
             videoSizeCalculator.setVideoSize(mp.getVideoWidth(), mp.getVideoHeight());
-
+            if (mRenderer != null) {
+                mRenderer.setVideoSize(mp.getVideoWidth(), mp.getVideoHeight());
+            }
             int seekToPosition = mSeekWhenPrepared;  // mSeekWhenPrepared may be changed after seekTo() call
             if (seekToPosition != 0) {
                 seekTo(seekToPosition);
