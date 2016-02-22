@@ -604,14 +604,11 @@ public class FensterVideoView extends TextureView implements MediaController.Med
             boolean isValidState = (mTargetState == STATE_PLAYING);
             boolean hasValidSize = videoSizeCalculator.currentSizeIs(width, height);
             if (mRenderer != null) {
-                mRenderer.setVideoSize(width, height);
+                mRenderer.setOutputSize(width, height);
             }
             if (mMediaPlayer != null && isValidState && hasValidSize) {
                 mSurfaceWidth = width;
                 mSurfaceHeight = height;
-                if (mRenderer != null) {
-                    mRenderer.setOutputSize(mSurfaceWidth, mSurfaceHeight);
-                }
                 if (mSeekWhenPrepared != 0) {
                     seekTo(mSeekWhenPrepared);
                 }
