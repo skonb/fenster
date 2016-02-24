@@ -865,15 +865,4 @@ public class FensterVideoView extends TextureView implements MediaController.Med
     public void setRenderer(Renderer renderer) {
         this.mRenderer = renderer;
     }
-
-    public boolean isLooping() {
-        return mLooping;
-    }
-
-    public void setLooping(boolean looping) {
-        mLooping = looping;
-        if (mMediaPlayer != null) {
-            mMediaPlayer.setLooping(looping);
-        }
-    }
 }
