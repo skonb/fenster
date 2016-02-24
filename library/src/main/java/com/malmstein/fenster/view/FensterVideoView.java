@@ -119,6 +119,8 @@ public class FensterVideoView extends TextureView implements MediaController.Med
     private int mSurfaceWidth;
     private int mSurfaceHeight;
 
+    private boolean mLooping;
+
     public FensterVideoView(final Context context, final AttributeSet attrs) {
         this(context, attrs, 0);
     }
@@ -274,6 +276,7 @@ public class FensterVideoView extends TextureView implements MediaController.Med
             mMediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
             mMediaPlayer.setScreenOnWhilePlaying(true);
             mMediaPlayer.prepareAsync();
+            mMediaPlayer.setLooping(mLooping);
 
             // we don't set the target state here either, but preserve the target state that was there before.
             mCurrentState = STATE_PREPARING;
@@ -861,5 +864,16 @@ public class FensterVideoView extends TextureView implements MediaController.Med
 
     public void setRenderer(Renderer renderer) {
         this.mRenderer = renderer;
+    }
+
+    public boolean isLooping() {
+        return mLooping;
+    }
+
+    public void setLooping(boolean looping) {
+        mLooping = looping;
+        if (mMediaPlayer != null) {
+            mMediaPlayer.setLooping(looping);
+        }
     }
 }

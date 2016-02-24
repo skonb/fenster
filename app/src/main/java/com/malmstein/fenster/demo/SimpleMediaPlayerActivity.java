@@ -2,11 +2,13 @@ package com.malmstein.fenster.demo;
 
 import android.app.Activity;
 import android.content.res.AssetFileDescriptor;
+import android.graphics.SurfaceTexture;
 import android.os.Bundle;
 import android.view.View;
 
 import com.malmstein.fenster.controller.FensterPlayerControllerVisibilityListener;
 import com.malmstein.fenster.controller.SimpleMediaFensterPlayerController;
+import com.malmstein.fenster.renderer.VideoTextureRenderer;
 import com.malmstein.fenster.view.FensterVideoView;
 
 public class SimpleMediaPlayerActivity extends Activity implements FensterPlayerControllerVisibilityListener {
@@ -25,6 +27,7 @@ public class SimpleMediaPlayerActivity extends Activity implements FensterPlayer
         initVideo();
     }
 
+
     @Override
     protected void onPostCreate(Bundle savedInstanceState) {
         super.onPostCreate(savedInstanceState);
@@ -35,7 +38,7 @@ public class SimpleMediaPlayerActivity extends Activity implements FensterPlayer
         } else {
             textureView.setVideo("http://clips.vorwaerts-gmbh.de/big_buck_bunny.mp4");
         }
-
+        textureView.setRenderer(new Renderer());
         textureView.start();
     }
 
