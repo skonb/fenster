@@ -21,6 +21,7 @@ import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.Surface;
 import android.view.TextureView;
+import android.view.View;
 import android.view.accessibility.AccessibilityEvent;
 import android.view.accessibility.AccessibilityNodeInfo;
 import android.widget.MediaController;
@@ -153,8 +154,12 @@ public class FensterVideoView extends TextureView implements MediaController.Med
 
     @Override
     protected void onMeasure(final int widthMeasureSpec, final int heightMeasureSpec) {
-        VideoSizeCalculator.Dimens dimens = videoSizeCalculator.measure(widthMeasureSpec, heightMeasureSpec);
-        setMeasuredDimension(dimens.getWidth(), dimens.getHeight());
+        if (mScaleType == ScaleType.CROP) {
+            setMeasuredDimension(View.MeasureSpec.getSize(widthMeasureSpec), View.MeasureSpec.getSize(heightMeasureSpec));
+        } else {
+            VideoSizeCalculator.Dimens dimens = videoSizeCalculator.measure(widthMeasureSpec, heightMeasureSpec);
+            setMeasuredDimension(dimens.getWidth(), dimens.getHeight());
+        }
     }
 
     @Override
@@ -609,9 +614,9 @@ public class FensterVideoView extends TextureView implements MediaController.Med
             if (mRenderer != null) {
                 mRenderer.setOutputSize(width, height);
             }
+            mSurfaceWidth = width;
+            mSurfaceHeight = height;
             if (mMediaPlayer != null && isValidState && hasValidSize) {
-                mSurfaceWidth = width;
-                mSurfaceHeight = height;
                 if (mSeekWhenPrepared != 0) {
                     seekTo(mSeekWhenPrepared);
                 }
