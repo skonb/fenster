@@ -292,6 +292,9 @@ public class FensterVideoView extends TextureView implements MediaController.Med
     }
 
     private void openVideo() {
+        if (mUri == null) {
+            return;
+        }
         if (notReadyForPlaybackJustYetWillTryAgainLater()) {
             return;
         }
