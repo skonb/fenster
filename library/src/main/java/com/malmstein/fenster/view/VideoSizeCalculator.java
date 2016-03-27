@@ -19,6 +19,22 @@ public class VideoSizeCalculator {
         this.mVideoHeight = mVideoHeight;
     }
 
+    public int getVideoWidth() {
+        return mVideoWidth;
+    }
+
+    public void setVideoWidth(int mVideoWidth) {
+        this.mVideoWidth = mVideoWidth;
+    }
+
+    public int getVideoHeight() {
+        return mVideoHeight;
+    }
+
+    public void setVideoHeight(int mVideoHeight) {
+        this.mVideoHeight = mVideoHeight;
+    }
+
     public boolean hasASizeYet() {
         return mVideoWidth > 0 && mVideoHeight > 0;
     }

@@ -6,6 +6,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.res.AssetFileDescriptor;
 import android.content.res.TypedArray;
+import android.graphics.Matrix;
 import android.graphics.SurfaceTexture;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
@@ -226,14 +227,14 @@ public class FensterVideoView extends TextureView implements MediaController.Med
      * @param scaleType
      */
     private void setScaleType(ScaleType scaleType) {
-        switch (scaleType) {
-            case SCALE_TO_FIT:
-                mMediaPlayer.setVideoScalingMode(MediaPlayer.VIDEO_SCALING_MODE_SCALE_TO_FIT);
-                break;
-            case CROP:
-                mMediaPlayer.setVideoScalingMode(MediaPlayer.VIDEO_SCALING_MODE_SCALE_TO_FIT_WITH_CROPPING);
-                break;
-        }
+//        switch (scaleType) {
+//            case SCALE_TO_FIT:
+//                mMediaPlayer.setVideoScalingMode(MediaPlayer.VIDEO_SCALING_MODE_SCALE_TO_FIT);
+//                break;
+//            case CROP:
+//                mMediaPlayer.setVideoScalingMode(MediaPlayer.VIDEO_SCALING_MODE_SCALE_TO_FIT_WITH_CROPPING);
+//                break;
+//        }
     }
 
     private void setVideoURI(final Uri uri, final Map<String, String> headers, final int seekInSeconds) {
@@ -394,9 +395,11 @@ public class FensterVideoView extends TextureView implements MediaController.Med
                 fensterPlayerController.setEnabled(true);
             }
             videoSizeCalculator.setVideoSize(mp.getVideoWidth(), mp.getVideoHeight());
+            fitScaling();
             if (mRenderer != null) {
                 mRenderer.setVideoSize(mp.getVideoWidth(), mp.getVideoHeight());
             }
+
             int seekToPosition = mSeekWhenPrepared;  // mSeekWhenPrepared may be changed after seekTo() call
             if (seekToPosition != 0) {
                 seekTo(seekToPosition);
@@ -410,6 +413,39 @@ public class FensterVideoView extends TextureView implements MediaController.Med
             }
         }
     };
+
+    public void fitScaling() {
+        switch (mScaleType) {
+            case SCALE_TO_FIT:
+                setTransform(new Matrix());
+                break;
+            case CROP: {
+                float videoWidth = videoSizeCalculator.getVideoWidth();
+                float videoHeight = videoSizeCalculator.getVideoHeight();
+                float surfaceWidth = getMeasuredWidth();
+                float surfaceHeight = getMeasuredHeight();
+
+                float videoAR = videoWidth / videoHeight;
+                float surfaceAR = surfaceWidth / surfaceHeight;
+                if (videoAR > surfaceAR) {
+                    Matrix matrix = new Matrix();
+                    float ratio = surfaceHeight / videoHeight;
+                    float scale = videoWidth * ratio / surfaceWidth;
+                    matrix.setScale(scale, 1f, 0.5f, 0.5f);
+                    setTransform(matrix);
+                } else if (videoAR < surfaceAR) {
+                    Matrix matrix = new Matrix();
+                    float ratio = surfaceWidth / videoWidth;
+                    float scale = videoHeight * ratio / surfaceHeight;
+                    matrix.setScale(1f, scale, 0.5f, 0.5f);
+                    setTransform(matrix);
+                } else {
+                    setTransform(new Matrix());
+                }
+                break;
+            }
+        }
+    }
 
     private boolean pausedAt(final int seekToPosition) {
         return !isPlaying() && (seekToPosition != 0 || getCurrentPosition() > 0);
