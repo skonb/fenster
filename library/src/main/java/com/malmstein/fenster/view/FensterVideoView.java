@@ -541,8 +541,7 @@ public class FensterVideoView extends TextureView implements MediaController.Med
                 Log.d(TAG, "Dismissing last error dialog for a new one");
                 errorDialog.dismiss();
             }
-            errorDialog = createErrorDialog(this.getContext(), mOnCompletionListener, mMediaPlayer, getErrorMessage(frameworkError));
-            errorDialog.show();
+            getErrorMessage(frameworkError);
         }
     }
 
