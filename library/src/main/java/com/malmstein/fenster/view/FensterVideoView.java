@@ -40,13 +40,12 @@ import java.util.Map;
  * can load images from various sources (such as resources or content
  * providers), takes care of computing its measurement from the video so that
  * it can be used in any layout manager, and provides various display options
- * such as scaling and tinting.<p>
- * <p/>
+ * such as scaling and tinting.
  * <em>Note: VideoView does not retain its full state when going into the
  * background.</em>  In particular, it does not restore the current play state,
  * play position, selected tracks added via
  * {@link android.app.Activity#onSaveInstanceState} and
- * {@link android.app.Activity#onRestoreInstanceState}.<p>
+ * {@link android.app.Activity#onRestoreInstanceState}.
  * Also note that the audio session id (from {@link #getAudioSessionId}) may
  * change from its previously returned value when the VideoView is restored.
  */

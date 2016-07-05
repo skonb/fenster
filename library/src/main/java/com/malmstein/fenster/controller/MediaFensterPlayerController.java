@@ -28,10 +28,8 @@ import java.util.Locale;
 
 /**
  * Controller to manage syncing the ui models with the UI Controls and MediaPlayer.
- * <p/>
  * Note that the ui models have a narrow scope (i.e. chapter list, piece navigation),
  * their interaction is orchestrated by this controller.ø
- * <p/>
  * It's actually a view currently, as is the android MediaController.
  * (which is a bit odd and should be subject to change.)
  */
@@ -40,7 +38,6 @@ public final class MediaFensterPlayerController extends RelativeLayout implement
     /**
      * Called to notify that the control have been made visible or hidden.
      * Implementation might want to show/hide actionbar or do other ui adjustments.
-     * <p/>
      * Implementation must be provided via the corresponding setter.
      */
 

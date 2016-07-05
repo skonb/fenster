@@ -28,10 +28,8 @@ import java.util.Locale;
 
 /**
  * Controller to manage syncing the ui models with the UI Controls and MediaPlayer.
- * <p/>
  * Note that the ui models have a narrow scope (i.e. chapter list, piece navigation),
  * their interaction is orchestrated by this controller.ø
- * <p/>
  * It's actually a view currently, as is the android MediaController.
  * (which is a bit odd and should be subject to change.)
  */

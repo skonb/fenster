@@ -12,7 +12,7 @@ import javax.microedition.khronos.egl.EGLSurface;
 
 /**
  * Renderer which initializes OpenGL 2.0 context on a passed surface and starts a rendering thread
- * <p/>
+ *
  * This class has to be subclassed to be used properly
  */
 public abstract class TextureSurfaceRenderer implements Runnable {
