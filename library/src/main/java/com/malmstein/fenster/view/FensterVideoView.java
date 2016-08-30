@@ -430,15 +430,13 @@ public class FensterVideoView extends TextureView implements MediaController.Med
                     Matrix matrix = new Matrix();
                     float ratio = surfaceHeight / videoHeight;
                     float scale = videoWidth * ratio / surfaceWidth;
-                    matrix.setScale(scale, 1f, 0.5f, 0.5f);
-                    matrix.setTranslate(-(videoWidth * scale - surfaceWidth) / 2, 0);
+                    matrix.setScale(scale, 1f, surfaceWidth / 2, surfaceHeight / 2);
                     setTransform(matrix);
                 } else if (videoAR < surfaceAR) {
                     Matrix matrix = new Matrix();
                     float ratio = surfaceWidth / videoWidth;
                     float scale = videoHeight * ratio / surfaceHeight;
-                    matrix.setScale(1f, scale, 0.5f, 0.5f);
-                    matrix.setTranslate(0, -(videoHeight * scale - surfaceHeight) / 2);
+                    matrix.setScale(1f, scale, surfaceWidth / 2, surfaceHeight / 2);
                     setTransform(matrix);
                 } else {
                     setTransform(new Matrix());
