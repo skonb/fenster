@@ -113,7 +113,7 @@ public class FensterDualVideoView extends TextureView {
 
     private AlertDialog errorDialog;
 
-    private FensterVideoView.Renderer mRenderer;
+    private Renderer mRenderer;
     private int mSurfaceWidth;
     private int mSurfaceHeight;
 
@@ -238,7 +238,7 @@ public class FensterDualVideoView extends TextureView {
             setDataSource(index);
             setScaleType(scaleTypes[index]);
 
-            mediaPlayers[index].setSurface(new Surface(mRenderer == null ? mSurfaceTexture : mRenderer.getInputTexture()));
+            mediaPlayers[index].setSurface(new Surface(mRenderer == null ? mSurfaceTexture : mRenderer.getInputTextures()[index]));
             mediaPlayers[index].setAudioStreamType(AudioManager.STREAM_MUSIC);
             mediaPlayers[index].setScreenOnWhilePlaying(true);
             mediaPlayers[index].prepareAsync();
@@ -316,7 +316,7 @@ public class FensterDualVideoView extends TextureView {
             int index = Arrays.binarySearch(mediaPlayers, mp);
             videoSizeCalculators[index].setVideoSize(mp.getVideoWidth(), mp.getVideoHeight());
             if (mRenderer != null) {
-                mRenderer.setVideoSize(width, height);
+                mRenderer.setVideoSize(index, width, height);
             }
             if (videoSizeCalculators[index].hasASizeYet()) {
                 requestLayout();
@@ -342,7 +342,7 @@ public class FensterDualVideoView extends TextureView {
             }
             videoSizeCalculators[index].setVideoSize(mp.getVideoWidth(), mp.getVideoHeight());
             if (mRenderer != null) {
-                mRenderer.setVideoSize(mp.getVideoWidth(), mp.getVideoHeight());
+                mRenderer.setVideoSize(index, mp.getVideoWidth(), mp.getVideoHeight());
             }
 
             int seekToPosition = seekWhenPrepareds[index];  // mSeekWhenPrepared may be changed after seekTo() call
@@ -744,11 +744,11 @@ public class FensterDualVideoView extends TextureView {
         this.onPlayStateListener = onPlayStateListener;
     }
 
-    public FensterVideoView.Renderer getRenderer() {
+    public Renderer getRenderer() {
         return mRenderer;
     }
 
-    public void setRenderer(FensterVideoView.Renderer renderer) {
+    public void setRenderer(Renderer renderer) {
         this.mRenderer = renderer;
     }
 }
