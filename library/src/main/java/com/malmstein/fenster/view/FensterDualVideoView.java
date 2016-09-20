@@ -56,6 +56,9 @@ public class FensterDualVideoView extends TextureView {
 
     public FensterDualVideoView(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
+        for(int i = 0 ; i < N ; ++i){
+            videoSizeCalculators[i] = new VideoSizeCalculator();
+        }
         initVideoView();
     }
 
