@@ -23,7 +23,6 @@ import com.malmstein.fenster.controller.FensterPlayerController;
 import com.malmstein.fenster.play.FensterVideoStateListener;
 
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.Map;
 
 /**
@@ -56,7 +55,7 @@ public class FensterDualVideoView extends TextureView {
 
     public FensterDualVideoView(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
-        for(int i = 0 ; i < N ; ++i){
+        for (int i = 0; i < N; ++i) {
             videoSizeCalculators[i] = new VideoSizeCalculator();
         }
         initVideoView();
@@ -316,13 +315,21 @@ public class FensterDualVideoView extends TextureView {
     private MediaPlayer.OnVideoSizeChangedListener mSizeChangedListener = new MediaPlayer.OnVideoSizeChangedListener() {
         @Override
         public void onVideoSizeChanged(final MediaPlayer mp, final int width, final int height) {
-            int index = Arrays.binarySearch(mediaPlayers, mp);
-            videoSizeCalculators[index].setVideoSize(mp.getVideoWidth(), mp.getVideoHeight());
-            if (mRenderer != null) {
-                mRenderer.setVideoSize(index, width, height);
+            int index = -1;
+            for (int i = 0; i < N; ++i) {
+                if (mediaPlayers[i] == mp) {
+                    index = i;
+                    break;
+                }
             }
-            if (videoSizeCalculators[index].hasASizeYet()) {
-                requestLayout();
+            if (index >= 0) {
+                videoSizeCalculators[index].setVideoSize(mp.getVideoWidth(), mp.getVideoHeight());
+                if (mRenderer != null) {
+                    mRenderer.setVideoSize(index, width, height);
+                }
+                if (videoSizeCalculators[index].hasASizeYet()) {
+                    requestLayout();
+                }
             }
         }
     };
@@ -330,34 +337,42 @@ public class FensterDualVideoView extends TextureView {
     private MediaPlayer.OnPreparedListener mPreparedListener = new MediaPlayer.OnPreparedListener() {
         @Override
         public void onPrepared(final MediaPlayer mp) {
-            int index = Arrays.binarySearch(mediaPlayers, mp);
-            currentStates[index] = STATE_PREPARED;
-
-            canPause[index] = true;
-            canSeekBack[index] = true;
-            canSeekForward[index] = true;
-
-            if (mOnPreparedListener != null) {
-                mOnPreparedListener.onPrepared(mediaPlayers[index]);
+            int index = -1;
+            for (int i = 0; i < N; ++i) {
+                if (mediaPlayers[i] == mp) {
+                    index = i;
+                    break;
+                }
             }
-            if (fensterPlayerController != null) {
-                fensterPlayerController.setEnabled(true);
-            }
-            videoSizeCalculators[index].setVideoSize(mp.getVideoWidth(), mp.getVideoHeight());
-            if (mRenderer != null) {
-                mRenderer.setVideoSize(index, mp.getVideoWidth(), mp.getVideoHeight());
-            }
+            if (index >= 0) {
+                currentStates[index] = STATE_PREPARED;
 
-            int seekToPosition = seekWhenPrepareds[index];  // mSeekWhenPrepared may be changed after seekTo() call
-            if (seekToPosition != 0) {
-                seekTo(index, seekToPosition);
-            }
+                canPause[index] = true;
+                canSeekBack[index] = true;
+                canSeekForward[index] = true;
 
-            if (targetStates[index] == STATE_PLAYING) {
-                start(index);
-                showMediaController();
-            } else if (pausedAt(index, seekToPosition)) {
-                showStickyMediaController();
+                if (mOnPreparedListener != null) {
+                    mOnPreparedListener.onPrepared(mediaPlayers[index]);
+                }
+                if (fensterPlayerController != null) {
+                    fensterPlayerController.setEnabled(true);
+                }
+                videoSizeCalculators[index].setVideoSize(mp.getVideoWidth(), mp.getVideoHeight());
+                if (mRenderer != null) {
+                    mRenderer.setVideoSize(index, mp.getVideoWidth(), mp.getVideoHeight());
+                }
+
+                int seekToPosition = seekWhenPrepareds[index];  // mSeekWhenPrepared may be changed after seekTo() call
+                if (seekToPosition != 0) {
+                    seekTo(index, seekToPosition);
+                }
+
+                if (targetStates[index] == STATE_PLAYING) {
+                    start(index);
+                    showMediaController();
+                } else if (pausedAt(index, seekToPosition)) {
+                    showStickyMediaController();
+                }
             }
         }
     };
@@ -376,13 +391,21 @@ public class FensterDualVideoView extends TextureView {
 
         @Override
         public void onCompletion(final MediaPlayer mp) {
-            int index = Arrays.binarySearch(mediaPlayers, mp);
-            setKeepScreenOn(false);
-            currentStates[index] = STATE_PLAYBACK_COMPLETED;
-            targetStates[index] = STATE_PLAYBACK_COMPLETED;
-            hideMediaController();
-            if (mOnCompletionListener != null) {
-                mOnCompletionListener.onCompletion(mediaPlayers[index]);
+            int index = -1;
+            for (int i = 0; i < N; ++i) {
+                if (mediaPlayers[i] == mp) {
+                    index = i;
+                    break;
+                }
+            }
+            if (index >= 0) {
+                setKeepScreenOn(false);
+                currentStates[index] = STATE_PLAYBACK_COMPLETED;
+                targetStates[index] = STATE_PLAYBACK_COMPLETED;
+                hideMediaController();
+                if (mOnCompletionListener != null) {
+                    mOnCompletionListener.onCompletion(mediaPlayers[index]);
+                }
             }
         }
     };
@@ -401,23 +424,32 @@ public class FensterDualVideoView extends TextureView {
         @Override
         public boolean onError(final MediaPlayer mp, final int frameworkError, final int implError) {
             Log.d(TAG, "Error: " + frameworkError + "," + implError);
-            int index = Arrays.binarySearch(mediaPlayers, mp);
-            if (currentStates[index] == STATE_ERROR) {
-                return true;
+            int index = -1;
+            for (int i = 0; i < N; ++i) {
+                if (mediaPlayers[i] == mp) {
+                    index = i;
+                    break;
+                }
             }
-            currentStates[index] = STATE_ERROR;
-            targetStates[index] = STATE_ERROR;
-            hideMediaController();
+            if (index >= 0) {
+                if (currentStates[index] == STATE_ERROR) {
+                    return true;
+                }
+                currentStates[index] = STATE_ERROR;
+                targetStates[index] = STATE_ERROR;
+                hideMediaController();
 
-            if (allowPlayStateToHandle(index, frameworkError)) {
-                return true;
-            }
+                if (allowPlayStateToHandle(index, frameworkError)) {
+                    return true;
+                }
 
-            if (allowErrorListenerToHandle(index, frameworkError, implError)) {
-                return true;
+                if (allowErrorListenerToHandle(index, frameworkError, implError)) {
+                    return true;
+                }
             }
 
             handleError(frameworkError);
+
             return true;
         }
     };
@@ -507,8 +539,16 @@ public class FensterDualVideoView extends TextureView {
     private MediaPlayer.OnBufferingUpdateListener mBufferingUpdateListener = new MediaPlayer.OnBufferingUpdateListener() {
         @Override
         public void onBufferingUpdate(final MediaPlayer mp, final int percent) {
-            int index = Arrays.binarySearch(mediaPlayers, mp);
-            currentBufferPercentages[index] = percent;
+            int index = -1;
+            for (int i = 0; i < N; ++i) {
+                if (mediaPlayers[i] == mp) {
+                    index = i;
+                    break;
+                }
+            }
+            if (index >= 0) {
+                currentBufferPercentages[index] = percent;
+            }
         }
     };
 
