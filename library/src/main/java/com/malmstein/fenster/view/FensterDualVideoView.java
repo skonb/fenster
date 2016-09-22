@@ -263,7 +263,7 @@ public class FensterDualVideoView extends TextureView {
         tellTheMusicPlaybackServiceToPause();
 
         // we shouldn't clear the target state, because somebody might have called start() previously
-        release(false);
+        release(index, false);
         if (mRenderer != null) {
             mRenderer.setOutputSize(mSurfaceWidth, mSurfaceHeight);
             mRenderer.startRenderingToOutput(mSurfaceTexture, new Runnable() {
@@ -629,7 +629,9 @@ public class FensterDualVideoView extends TextureView {
             mSurfaceTexture = null;
 
             hideMediaController();
-            release(true);
+            for (int i = 0; i < N; ++i) {
+                release(i, true);
+            }
             return false;
         }
 
@@ -644,16 +646,14 @@ public class FensterDualVideoView extends TextureView {
     /*
      * release the media player in any state
      */
-    private void release(final boolean clearTargetState) {
-        for (int index = 0; index < N; ++index) {
-            if (mediaPlayers[index] != null) {
-                mediaPlayers[index].reset();
-                mediaPlayers[index].release();
-                mediaPlayers[index] = null;
-                currentStates[index] = STATE_IDLE;
-                if (clearTargetState) {
-                    targetStates[index] = STATE_IDLE;
-                }
+    private void release(int index, final boolean clearTargetState) {
+        if (mediaPlayers[index] != null) {
+            mediaPlayers[index].reset();
+            mediaPlayers[index].release();
+            mediaPlayers[index] = null;
+            currentStates[index] = STATE_IDLE;
+            if (clearTargetState) {
+                targetStates[index] = STATE_IDLE;
             }
         }
         if (mRenderer != null) {
@@ -685,7 +685,9 @@ public class FensterDualVideoView extends TextureView {
     }
 
     public void suspend() {
-        release(false);
+        for (int i = 0; i < N; ++i) {
+            release(false);
+        }
     }
 
     public void resume(int index) {
