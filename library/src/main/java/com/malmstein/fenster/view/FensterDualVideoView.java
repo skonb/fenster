@@ -686,7 +686,7 @@ public class FensterDualVideoView extends TextureView {
 
     public void suspend() {
         for (int i = 0; i < N; ++i) {
-            release(false);
+            release(i, false);
         }
     }
 
