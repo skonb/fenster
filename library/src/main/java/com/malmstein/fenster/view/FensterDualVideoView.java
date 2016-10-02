@@ -101,10 +101,10 @@ public class FensterDualVideoView extends TextureView {
     private Map<String, String>[] headersList = new Map[N];
     private SurfaceTexture mSurfaceTexture;
     private FensterPlayerController fensterPlayerController;
-    private MediaPlayer.OnCompletionListener mOnCompletionListener;
-    private MediaPlayer.OnPreparedListener mOnPreparedListener;
-    private MediaPlayer.OnErrorListener mOnErrorListener;
-    private MediaPlayer.OnInfoListener mOnInfoListener;
+    private MediaPlayer.OnCompletionListener[] mOnCompletionListeners = new MediaPlayer.OnCompletionListener[N];
+    private MediaPlayer.OnPreparedListener[] mOnPreparedListeners = new MediaPlayer.OnPreparedListener[N];
+    private MediaPlayer.OnErrorListener[] mOnErrorListeners = new MediaPlayer.OnErrorListener[N];
+    private MediaPlayer.OnInfoListener[] mOnInfoListeners = new MediaPlayer.OnInfoListener[N];
     private int[] audioSessions = new int[N];
     private int[] seekWhenPrepareds = new int[N];  // recording the seek position while preparing
     private int[] currentBufferPercentages = new int[N];
@@ -149,7 +149,9 @@ public class FensterDualVideoView extends TextureView {
         requestFocus();
         currentStates = new int[]{STATE_IDLE, STATE_IDLE};
         targetStates = new int[]{STATE_IDLE, STATE_IDLE};
-        setOnInfoListener(onInfoToPlayStateListener);
+        for (int i = 0; i < N; ++i) {
+            setOnInfoListener(i, onInfoToPlayStateListener);
+        }
     }
 
     private void disableFileDescriptor(int index) {
@@ -351,8 +353,8 @@ public class FensterDualVideoView extends TextureView {
                 canSeekBack[index] = true;
                 canSeekForward[index] = true;
 
-                if (mOnPreparedListener != null) {
-                    mOnPreparedListener.onPrepared(mediaPlayers[index]);
+                if (mOnPreparedListeners[index] != null) {
+                    mOnPreparedListeners[index].onPrepared(mediaPlayers[index]);
                 }
                 if (fensterPlayerController != null) {
                     fensterPlayerController.setEnabled(true);
@@ -403,8 +405,8 @@ public class FensterDualVideoView extends TextureView {
                 currentStates[index] = STATE_PLAYBACK_COMPLETED;
                 targetStates[index] = STATE_PLAYBACK_COMPLETED;
                 hideMediaController();
-                if (mOnCompletionListener != null) {
-                    mOnCompletionListener.onCompletion(mediaPlayers[index]);
+                if (mOnCompletionListeners[index] != null) {
+                    mOnCompletionListeners[index].onCompletion(mediaPlayers[index]);
                 }
             }
         }
@@ -413,8 +415,17 @@ public class FensterDualVideoView extends TextureView {
     private MediaPlayer.OnInfoListener mInfoListener = new MediaPlayer.OnInfoListener() {
         @Override
         public boolean onInfo(final MediaPlayer mp, final int arg1, final int arg2) {
-            if (mOnInfoListener != null) {
-                mOnInfoListener.onInfo(mp, arg1, arg2);
+            int index = -1;
+            for (int i = 0; i < N; ++i) {
+                if (mediaPlayers[i] == mp) {
+                    index = i;
+                    break;
+                }
+            }
+            if (index >= 0) {
+                if (mOnInfoListeners[index] != null) {
+                    mOnInfoListeners[index].onInfo(mp, arg1, arg2);
+                }
             }
             return true;
         }
@@ -477,8 +488,9 @@ public class FensterDualVideoView extends TextureView {
     }
 
     private boolean allowErrorListenerToHandle(int index, final int frameworkError, final int implError) {
-        if (mOnErrorListener != null) {
-            return mOnErrorListener.onError(mediaPlayers[index], frameworkError, implError);
+
+        if (mOnErrorListeners[index] != null) {
+            return mOnErrorListeners[index].onError(mediaPlayers[index], frameworkError, implError);
         }
 
         return false;
@@ -558,8 +570,8 @@ public class FensterDualVideoView extends TextureView {
      *
      * @param l The callback that will be run
      */
-    public void setOnPreparedListener(final MediaPlayer.OnPreparedListener l) {
-        mOnPreparedListener = l;
+    public void setOnPreparedListener(int index, final MediaPlayer.OnPreparedListener l) {
+        mOnPreparedListeners[index] = l;
     }
 
     /**
@@ -568,8 +580,8 @@ public class FensterDualVideoView extends TextureView {
      *
      * @param l The callback that will be run
      */
-    public void setOnCompletionListener(final MediaPlayer.OnCompletionListener l) {
-        mOnCompletionListener = l;
+    public void setOnCompletionListener(int index, final MediaPlayer.OnCompletionListener l) {
+        mOnCompletionListeners[index] = l;
     }
 
     /**
@@ -580,8 +592,8 @@ public class FensterDualVideoView extends TextureView {
      *
      * @param l The callback that will be run
      */
-    public void setOnErrorListener(final MediaPlayer.OnErrorListener l) {
-        mOnErrorListener = l;
+    public void setOnErrorListener(int index, final MediaPlayer.OnErrorListener l) {
+        mOnErrorListeners[index] = l;
     }
 
     /**
@@ -590,8 +602,8 @@ public class FensterDualVideoView extends TextureView {
      *
      * @param l The callback that will be run
      */
-    private void setOnInfoListener(final MediaPlayer.OnInfoListener l) {
-        mOnInfoListener = l;
+    private void setOnInfoListener(int index, final MediaPlayer.OnInfoListener l) {
+        mOnInfoListeners[index] = l;
     }
 
     private SurfaceTextureListener mSTListener = new SurfaceTextureListener() {
