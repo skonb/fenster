@@ -685,6 +685,12 @@ public class FensterDualVideoView extends TextureView {
         targetStates[index] = STATE_PLAYING;
     }
 
+    public void start() {
+        for (int i = 0; i < N; ++i) {
+            start(i);
+        }
+    }
+
     public void pause(int index) {
         if (isInPlaybackState(index)) {
             if (mediaPlayers[index].isPlaying()) {
@@ -694,6 +700,12 @@ public class FensterDualVideoView extends TextureView {
             }
         }
         targetStates[index] = STATE_PAUSED;
+    }
+
+    public void pause() {
+        for (int i = 0; i < N; ++i) {
+            pause(i);
+        }
     }
 
     public void suspend() {
