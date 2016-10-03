@@ -824,4 +824,12 @@ public class FensterDualVideoView extends TextureView {
     public boolean canPause(int index) {
         return canPause[index];
     }
+
+    public boolean canSeekBack(int index) {
+        return canSeekBack[index];
+    }
+
+    public boolean canSeekForward(int index) {
+        return canSeekForward[index];
+    }
 }
