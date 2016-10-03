@@ -820,4 +820,8 @@ public class FensterDualVideoView extends TextureView {
     public void setRenderer(Renderer renderer) {
         this.mRenderer = renderer;
     }
+
+    public boolean canPause(int index) {
+        return canPause[index];
+    }
 }
