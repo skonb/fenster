@@ -619,15 +619,16 @@ public class FensterDualVideoView extends TextureView {
 
         @Override
         public void onSurfaceTextureSizeChanged(final SurfaceTexture surface, final int width, final int height) {
+            mSurfaceTexture = surface;
             if (mRenderer != null) {
                 mRenderer.setOutputSize(width, height);
             }
+            mSurfaceWidth = width;
+            mSurfaceHeight = height;
             for (int i = 0; i < N; ++i) {
                 boolean isValidState = (targetStates[i] == STATE_PLAYING);
-                boolean hasValidSize = videoSizeCalculators[i].currentSizeIs(width, height);
-                mSurfaceWidth = width;
-                mSurfaceHeight = height;
-                if (mediaPlayers[i] != null && isValidState && hasValidSize) {
+//                boolean hasValidSize = videoSizeCalculators[i].currentSizeIs(width, height);
+                if (mediaPlayers[i] != null && isValidState) {
                     if (seekWhenPrepareds[i] != 0) {
                         seekTo(i, seekWhenPrepareds[i]);
                     }
@@ -679,7 +680,6 @@ public class FensterDualVideoView extends TextureView {
     public void start(int index) {
         if (isInPlaybackState(index)) {
             mediaPlayers[index].start();
-            setKeepScreenOn(true);
             currentStates[index] = STATE_PLAYING;
         }
         targetStates[index] = STATE_PLAYING;
@@ -696,7 +696,6 @@ public class FensterDualVideoView extends TextureView {
             if (mediaPlayers[index].isPlaying()) {
                 mediaPlayers[index].pause();
                 currentStates[index] = STATE_PAUSED;
-                setKeepScreenOn(false);
             }
         }
         targetStates[index] = STATE_PAUSED;
