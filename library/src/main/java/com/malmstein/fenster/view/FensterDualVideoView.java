@@ -613,10 +613,8 @@ public class FensterDualVideoView extends TextureView {
             mSurfaceTexture = surface;
             mSurfaceWidth = width;
             mSurfaceHeight = height;
-            if (targetStates[0] == STATE_PLAYING && targetStates[1] == STATE_PLAYING) {
-                for (int i = 0; i < N; ++i) {
-                    openVideo(i);
-                }
+            for (int i = 0; i < N; ++i) {
+                openVideo(i);
             }
         }
 
