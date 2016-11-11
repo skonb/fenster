@@ -661,7 +661,6 @@ public class FensterDualVideoView extends TextureView {
      */
     private void release(int index, final boolean clearTargetState) {
         if (mediaPlayers[index] != null) {
-            mediaPlayers[index].reset();
             mediaPlayers[index].release();
             mediaPlayers[index] = null;
             currentStates[index] = STATE_IDLE;
