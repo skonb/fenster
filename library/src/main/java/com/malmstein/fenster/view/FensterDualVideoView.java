@@ -609,11 +609,14 @@ public class FensterDualVideoView extends TextureView {
     private SurfaceTextureListener mSTListener = new SurfaceTextureListener() {
         @Override
         public void onSurfaceTextureAvailable(final SurfaceTexture surface, final int width, final int height) {
+
             mSurfaceTexture = surface;
             mSurfaceWidth = width;
             mSurfaceHeight = height;
-            for (int i = 0; i < N; ++i) {
-                openVideo(i);
+            if (targetStates[0] == STATE_PLAYING && targetStates[1] == STATE_PLAYING) {
+                for (int i = 0; i < N; ++i) {
+                    openVideo(i);
+                }
             }
         }
 
