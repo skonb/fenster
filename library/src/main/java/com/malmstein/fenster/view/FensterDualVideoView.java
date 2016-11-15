@@ -741,8 +741,13 @@ public class FensterDualVideoView extends TextureView {
 
     public void seekTo(int index, final int millis) {
         if (isInPlaybackState(index)) {
-            mediaPlayers[index].seekTo(millis);
-            seekWhenPrepareds[index] = 0;
+            try {
+                mediaPlayers[index].seekTo(millis);
+                seekWhenPrepareds[index] = 0;
+            } catch (IllegalStateException e) {
+                e.printStackTrace();
+                seekWhenPrepareds[index] = millis;
+            }
         } else {
             seekWhenPrepareds[index] = millis;
         }
