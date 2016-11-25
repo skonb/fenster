@@ -211,8 +211,14 @@ public class FensterDualVideoView extends TextureView {
 
     public void stopPlayback(int index) {
         if (mediaPlayers[index] != null) {
-            mediaPlayers[index].stop();
-            mediaPlayers[index].release();
+            try {
+                mediaPlayers[index].stop();
+                mediaPlayers[index].release();
+            } catch (IllegalStateException e) {
+                e.printStackTrace();
+            } finally {
+
+            }
             mediaPlayers[index] = null;
             if (mediaPlayers[0] == null && mediaPlayers[1] == null) {
                 setKeepScreenOn(false);
