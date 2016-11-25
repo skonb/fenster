@@ -217,9 +217,9 @@ public class FensterDualVideoView extends TextureView {
             if (mediaPlayers[0] == null && mediaPlayers[1] == null) {
                 setKeepScreenOn(false);
             }
-            currentStates[index] = STATE_IDLE;
-            targetStates[index] = STATE_IDLE;
         }
+        currentStates[index] = STATE_IDLE;
+        targetStates[index] = STATE_IDLE;
     }
 
     private void openVideoImpl(int index) {
